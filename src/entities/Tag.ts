@@ -10,10 +10,9 @@ export class Tag extends BaseEntity {
     @IsNotEmpty()
     name!: string;
 
-    @Column()
+    @Column({ unique: true })
     @IsNotEmpty()
     slug!: string;
-
     @Column({ nullable: true })
     color?: string;
 
