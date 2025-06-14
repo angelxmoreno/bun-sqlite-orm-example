@@ -1,0 +1,26 @@
+{
+{
+    "name": "bun-sqlite-orm-example",
+    "version": "0.1.0",
+    "description": "Initial Bun SQLite ORM example project",
+    "license": "MIT",
+    "module": "src/index.ts",
+    "type": "module",
+    // …other fields…
+}
+    "scripts": {
+        "prepare": "if [ \"$CI\" = \"true\" ]; then echo 'CI detected: skipping lefthook install'; else bunx lefthook install; fi",
+        "lint": "bun biome check .",
+        "lint:fix": "bun biome check --write"
+    },
+    "devDependencies": {
+        "@types/bun": "latest",
+        "@biomejs/biome": "^1.9.4",
+        "@commitlint/cli": "^19.8.1",
+        "@commitlint/config-conventional": "^19.8.1",
+        "lefthook": "^1.11.13"
+    },
+    "peerDependencies": {
+        "typescript": "^5.0.0"
+    }
+}
