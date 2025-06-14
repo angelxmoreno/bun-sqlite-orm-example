@@ -9,7 +9,13 @@ export const dataSource = new DataSource({
 });
 
 export async function initializeDatabase() {
-    await dataSource.initialize();
-    await dataSource.runMigrations();
-    return dataSource;
+    try {
+        await dataSource.initialize();
+        await dataSource.runMigrations();
+        return dataSource;
+    } catch (err) {
+        // Log once with full context and re-throw for the caller to decide.
+        console.error('❌ Failed to initialise database', err);
+        throw err;
+    }
 }
