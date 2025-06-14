@@ -27,6 +27,7 @@
         "@faker-js/faker": "^9.8.0",
         "bun-sqlite-orm": "^1.1.0",
         "class-validator": "^0.14.2",
-        "hono": "^4.7.11"
+        "hono": "^4.7.11",
+        "reflect-metadata": "^0.2.2"
     }
 }
