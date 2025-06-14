@@ -6,7 +6,7 @@ pre-commit:
       skip:
         - merge
         - rebase
-      files: git diff --name-only HEAD
+      files: git diff --cached --name-only
 
 commit-msg:
   commands:
