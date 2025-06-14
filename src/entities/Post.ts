@@ -16,7 +16,7 @@ export class Post extends BaseEntity {
     @IsNotEmpty()
     title!: string;
 
-    @Column()
+    @Column({ unique: true })
     @IsNotEmpty()
     slug!: string;
 

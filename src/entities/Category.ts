@@ -10,7 +10,7 @@ export class Category extends BaseEntity {
     @IsNotEmpty()
     name!: string;
 
-    @Column()
+    @Column({ unique: true })
     @IsNotEmpty()
     slug!: string;
 

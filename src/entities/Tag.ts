@@ -13,6 +13,7 @@ export class Tag extends BaseEntity {
     @Column({ unique: true })
     @IsNotEmpty()
     slug!: string;
+
     @Column({ nullable: true })
     color?: string;
 
