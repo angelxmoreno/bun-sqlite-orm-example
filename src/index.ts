@@ -43,6 +43,8 @@ await initializeDatabase();
 console.log(`🚀 Server running on port ${appConfig.server.port}`);
 console.log(`📊 Database: ${appConfig.database.path}`);
 
+export { app };
+
 export default {
     port: appConfig.server.port,
     fetch: app.fetch,
