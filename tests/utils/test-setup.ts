@@ -45,6 +45,11 @@ export async function cleanupTestDatabase() {
     for (const user of users) {
         await user.remove();
     }
+
+    // Close DataSource connection to prevent resource leaks
+    if (testDataSource) {
+        await testDataSource.destroy();
+    }
 }
 
 // Test data factories
