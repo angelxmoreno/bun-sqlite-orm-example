@@ -1,6 +1,7 @@
 import { Comment, Post, User } from '@/entities';
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
+import { validator } from 'hono/validator';
 
 export const commentRoutes = new Hono();
 
@@ -9,20 +10,28 @@ commentRoutes.get('/', async (c) => {
     return c.json(comments);
 });
 
-commentRoutes.get('/:id', async (c) => {
-    const id = Number.parseInt(c.req.param('id'));
-    if (Number.isNaN(id)) {
-        throw new HTTPException(400, { message: 'Invalid comment ID' });
+commentRoutes.get(
+    '/:id',
+    validator('param', (value, c) => {
+        const id = Number(value.id);
+        if (!Number.isInteger(id) || id <= 0) {
+            throw new HTTPException(400, {
+                message: 'Invalid comment ID',
+            });
+        }
+        return { id };
+    }),
+    async (c) => {
+        const { id } = c.req.valid('param');
+        const comment = await Comment.get(id);
+
+        if (!comment) {
+            throw new HTTPException(404, { message: 'Comment not found' });
+        }
+
+        return c.json(comment);
     }
-
-    const comment = await Comment.get(id);
-
-    if (!comment) {
-        throw new HTTPException(404, { message: 'Comment not found' });
-    }
-
-    return c.json(comment);
-});
+);
 
 commentRoutes.post('/', async (c) => {
     const body = await c.req.json();
@@ -68,38 +77,54 @@ commentRoutes.post('/', async (c) => {
     }
 });
 
-commentRoutes.put('/:id', async (c) => {
-    const id = Number.parseInt(c.req.param('id'));
-    if (Number.isNaN(id)) {
-        throw new HTTPException(400, { message: 'Invalid comment ID' });
+commentRoutes.put(
+    '/:id',
+    validator('param', (value, c) => {
+        const id = Number(value.id);
+        if (!Number.isInteger(id) || id <= 0) {
+            throw new HTTPException(400, {
+                message: 'Invalid comment ID',
+            });
+        }
+        return { id };
+    }),
+    async (c) => {
+        const { id } = c.req.valid('param');
+        const comment = await Comment.get(id);
+        if (!comment) {
+            throw new HTTPException(404, { message: 'Comment not found' });
+        }
+
+        const body = await c.req.json();
+
+        try {
+            await comment.update(body);
+            return c.json(comment);
+        } catch (error) {
+            throw new HTTPException(400, { message: 'Failed to update comment' });
+        }
     }
+);
 
-    const comment = await Comment.get(id);
-    if (!comment) {
-        throw new HTTPException(404, { message: 'Comment not found' });
+commentRoutes.delete(
+    '/:id',
+    validator('param', (value, c) => {
+        const id = Number(value.id);
+        if (!Number.isInteger(id) || id <= 0) {
+            throw new HTTPException(400, {
+                message: 'Invalid comment ID',
+            });
+        }
+        return { id };
+    }),
+    async (c) => {
+        const { id } = c.req.valid('param');
+        const comment = await Comment.get(id);
+        if (!comment) {
+            throw new HTTPException(404, { message: 'Comment not found' });
+        }
+
+        await comment.remove();
+        return c.json({ message: 'Comment deleted successfully' });
     }
-
-    const body = await c.req.json();
-
-    try {
-        await comment.update(body);
-        return c.json(comment);
-    } catch (error) {
-        throw new HTTPException(400, { message: 'Failed to update comment' });
-    }
-});
-
-commentRoutes.delete('/:id', async (c) => {
-    const id = Number.parseInt(c.req.param('id'));
-    if (Number.isNaN(id)) {
-        throw new HTTPException(400, { message: 'Invalid comment ID' });
-    }
-
-    const comment = await Comment.get(id);
-    if (!comment) {
-        throw new HTTPException(404, { message: 'Comment not found' });
-    }
-
-    await comment.remove();
-    return c.json({ message: 'Comment deleted successfully' });
-});
+);

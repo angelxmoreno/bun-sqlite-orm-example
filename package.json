@@ -10,6 +10,8 @@
         "dev": "bun --watch src/index.ts",
         "start": "bun src/index.ts",
         "seed": "bun src/scripts/seed.ts",
+        "test": "bun test",
+        "test:watch": "bun test --watch",
         "lint": "bun biome check .",
         "lint:fix": "bun biome check --write"
     },

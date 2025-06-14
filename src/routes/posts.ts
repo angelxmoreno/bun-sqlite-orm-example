@@ -1,6 +1,7 @@
 import { Post, PostStatus, User } from '@/entities';
 import { Hono } from 'hono';
 import { HTTPException } from 'hono/http-exception';
+import { validator } from 'hono/validator';
 
 export const postRoutes = new Hono();
 
@@ -9,19 +10,27 @@ postRoutes.get('/', async (c) => {
     return c.json(posts);
 });
 
-postRoutes.get('/:id', async (c) => {
-    const id = Number.parseInt(c.req.param('id'));
-    if (Number.isNaN(id)) {
-        throw new HTTPException(400, { message: 'Invalid post ID' });
-    }
+postRoutes.get(
+    '/:id',
+    validator('param', (value, c) => {
+        const id = Number(value.id);
+        if (!Number.isInteger(id) || id <= 0) {
+            throw new HTTPException(400, {
+                message: 'Invalid post ID',
+            });
+        }
+        return { id };
+    }),
+    async (c) => {
+        const { id } = c.req.valid('param');
+        const post = await Post.get(id);
+        if (!post) {
+            throw new HTTPException(404, { message: 'Post not found' });
+        }
 
-    const post = await Post.get(id);
-    if (!post) {
-        throw new HTTPException(404, { message: 'Post not found' });
+        return c.json(post);
     }
-
-    return c.json(post);
-});
+);
 
 postRoutes.post('/', async (c) => {
     const body = await c.req.json();
@@ -62,51 +71,67 @@ postRoutes.post('/', async (c) => {
     }
 });
 
-postRoutes.put('/:id', async (c) => {
-    const id = Number.parseInt(c.req.param('id'));
-    if (Number.isNaN(id)) {
-        throw new HTTPException(400, { message: 'Invalid post ID' });
-    }
-
-    const post = await Post.get(id);
-    if (!post) {
-        throw new HTTPException(404, { message: 'Post not found' });
-    }
-
-    const body = await c.req.json();
-    const { authorId, ...postData } = body;
-
-    if (authorId) {
-        const author = await User.get(authorId);
-        if (!author) {
-            throw new HTTPException(400, { message: 'Author not found' });
+postRoutes.put(
+    '/:id',
+    validator('param', (value, c) => {
+        const id = Number(value.id);
+        if (!Number.isInteger(id) || id <= 0) {
+            throw new HTTPException(400, {
+                message: 'Invalid post ID',
+            });
         }
-        postData.authorId = authorId;
-    }
+        return { id };
+    }),
+    async (c) => {
+        const { id } = c.req.valid('param');
+        const post = await Post.get(id);
+        if (!post) {
+            throw new HTTPException(404, { message: 'Post not found' });
+        }
 
-    if (postData.status === PostStatus.PUBLISHED && !post.publishedAt) {
-        postData.publishedAt = new Date();
-    }
+        const body = await c.req.json();
+        const { authorId, ...postData } = body;
 
-    try {
-        await post.update(postData);
-        return c.json(post);
-    } catch (error) {
-        throw new HTTPException(400, { message: 'Failed to update post' });
-    }
-});
+        if (authorId) {
+            const author = await User.get(authorId);
+            if (!author) {
+                throw new HTTPException(400, { message: 'Author not found' });
+            }
+            postData.authorId = authorId;
+        }
 
-postRoutes.delete('/:id', async (c) => {
-    const id = Number.parseInt(c.req.param('id'));
-    if (Number.isNaN(id)) {
-        throw new HTTPException(400, { message: 'Invalid post ID' });
-    }
+        if (postData.status === PostStatus.PUBLISHED && !post.publishedAt) {
+            postData.publishedAt = new Date();
+        }
 
-    const post = await Post.get(id);
-    if (!post) {
-        throw new HTTPException(404, { message: 'Post not found' });
+        try {
+            await post.update(postData);
+            return c.json(post);
+        } catch (error) {
+            throw new HTTPException(400, { message: 'Failed to update post' });
+        }
     }
+);
 
-    await post.remove();
-    return c.json({ message: 'Post deleted successfully' });
-});
+postRoutes.delete(
+    '/:id',
+    validator('param', (value, c) => {
+        const id = Number(value.id);
+        if (!Number.isInteger(id) || id <= 0) {
+            throw new HTTPException(400, {
+                message: 'Invalid post ID',
+            });
+        }
+        return { id };
+    }),
+    async (c) => {
+        const { id } = c.req.valid('param');
+        const post = await Post.get(id);
+        if (!post) {
+            throw new HTTPException(404, { message: 'Post not found' });
+        }
+
+        await post.remove();
+        return c.json({ message: 'Post deleted successfully' });
+    }
+);
